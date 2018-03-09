@@ -16,6 +16,7 @@ package com.android.systemui.navigationbar.buttons;
 
 import android.annotation.Nullable;
 import android.content.Context;
+import android.os.SystemProperties;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -86,6 +87,11 @@ public class ReverseLinearLayout extends LinearLayout {
         boolean isLayoutRtl = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
         boolean isLayoutReverse = isLayoutRtl ^ mIsAlternativeOrder;
 
+        boolean isSeascapeDisabled = SystemProperties.getBoolean("persist.ui.seascape.disable", false);
+        if (isSeascapeDisabled) {
+            isLayoutReverse = isLayoutRtl ^ true;
+        }
+
         if (mIsLayoutReverse != isLayoutReverse) {
             // reversity changed, swap the order of all views.
             int childCount = getChildCount();
@@ -154,7 +160,7 @@ public class ReverseLinearLayout extends LinearLayout {
             if (getGravity() != gravityToApply) setGravity(gravityToApply);
         }
     }
-    
+
     private static void reverseGroup(ViewGroup group, boolean isLayoutReverse) {
         for (int i = 0; i < group.getChildCount(); i++) {
             final View child = group.getChildAt(i);

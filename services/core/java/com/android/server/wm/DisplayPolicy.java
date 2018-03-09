@@ -2334,9 +2334,10 @@ public class DisplayPolicy {
     @NavigationBarPosition
     int navigationBarPosition(int displayWidth, int displayHeight, int displayRotation) {
         if (navigationBarCanMove() && displayWidth > displayHeight) {
-            if (displayRotation == Surface.ROTATION_270) {
+            boolean isSeascapeDisabled = SystemProperties.getBoolean("persist.ui.seascape.disable", false);
+            if (displayRotation == Surface.ROTATION_270 && !isSeascapeDisabled) {
                 return NAV_BAR_LEFT;
-            } else if (displayRotation == Surface.ROTATION_90) {
+            } else {
                 return NAV_BAR_RIGHT;
             }
         }
