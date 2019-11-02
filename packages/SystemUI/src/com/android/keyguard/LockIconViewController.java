@@ -232,31 +232,16 @@ public class LockIconViewController extends ViewController<LockIconView> impleme
             return;
         }
 
-        boolean wasShowingFpIcon = mUdfpsEnrolled && !mShowUnlockIcon && !mShowLockIcon;
-        boolean wasShowingLockIcon = mShowLockIcon;
+        boolean wasShowingFpIcon = mUdfpsEnrolled && !mShowUnlockIcon;
         boolean wasShowingUnlockIcon = mShowUnlockIcon;
-        mShowLockIcon = !mCanDismissLockScreen && !mUserUnlockedWithBiometric && isLockScreen()
-            && (!mUdfpsEnrolled || !mRunningFPS);
-        mShowUnlockIcon = mCanDismissLockScreen && isLockScreen();
+        mShowUnlockIcon = mCanDismissLockScreen && isLockScreen() && mUdfpsEnrolled;
 
         final CharSequence prevContentDescription = mView.getContentDescription();
-        if (mShowLockIcon) {
-            mView.setImageDrawable(mLockIcon);
-            mView.setVisibility(View.VISIBLE);
-            mView.setContentDescription(mLockedLabel);
-        } else if (mShowUnlockIcon) {
-            if (!wasShowingUnlockIcon) {
-                if (wasShowingFpIcon) {
-                    mView.setImageDrawable(mFpToUnlockIcon);
-                    mFpToUnlockIcon.forceAnimationOnUI();
-                    mFpToUnlockIcon.start();
-                } else if (wasShowingLockIcon) {
-                    mView.setImageDrawable(mLockToUnlockIcon);
-                    mLockToUnlockIcon.forceAnimationOnUI();
-                    mLockToUnlockIcon.start();
-                } else {
-                    mView.setImageDrawable(mUnlockIcon);
-                }
+        if (mShowUnlockIcon) {
+            if (wasShowingFpIcon) {
+                mView.setImageDrawable(mFpToUnlockIcon);
+                mFpToUnlockIcon.forceAnimationOnUI();
+                mFpToUnlockIcon.start();
             }
             mView.setVisibility(View.VISIBLE);
             mView.setContentDescription(mUnlockedLabel);
