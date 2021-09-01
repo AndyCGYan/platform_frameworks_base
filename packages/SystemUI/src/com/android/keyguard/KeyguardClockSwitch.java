@@ -268,15 +268,7 @@ public class KeyguardClockSwitch extends RelativeLayout {
      * the smaller version.
      */
     boolean willSwitchToLargeClock(boolean hasVisibleNotifications) {
-        if (mHasVisibleNotifications != null
-                && hasVisibleNotifications == mHasVisibleNotifications) {
-            return false;
-        }
-        boolean useLargeClock = !hasVisibleNotifications;
-        animateClockChange(useLargeClock);
-
-        mHasVisibleNotifications = hasVisibleNotifications;
-        return useLargeClock;
+        return false;
     }
 
     public Paint getPaint() {
