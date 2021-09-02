@@ -113,7 +113,7 @@ public class AnimatableClockView extends TextView {
 
     void refreshTime() {
         mTime.setTimeInMillis(System.currentTimeMillis());
-        setText(DateFormat.format(mFormat, mTime));
+        setText(DateFormat.format(mFormat, mTime).toString() + ' ');
         setContentDescription(DateFormat.format(mDescFormat, mTime));
     }
 
