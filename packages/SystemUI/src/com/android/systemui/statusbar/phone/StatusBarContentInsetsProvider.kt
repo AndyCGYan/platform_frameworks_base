@@ -19,7 +19,6 @@ package com.android.systemui.statusbar.phone
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Rect
-import android.util.Log
 import android.util.Pair
 import android.view.DisplayCutout
 import android.view.View.LAYOUT_DIRECTION_RTL
@@ -156,30 +155,13 @@ class StatusBarContentInsetsProvider @Inject constructor(
         val dc = context.display.cutout
         val currentRotation = RotationUtils.getExactRotation(context)
 
-        val isRtl = rotatedResources.configuration.layoutDirection == LAYOUT_DIRECTION_RTL
-        val roundedCornerPadding = rotatedResources
-                .getDimensionPixelSize(R.dimen.rounded_corner_content_padding)
-        val minDotWidth = rotatedResources
-                .getDimensionPixelSize(R.dimen.ongoing_appops_dot_min_padding)
-
-        val minLeft: Int
-        val minRight: Int
-        if (isRtl) {
-            minLeft = max(minDotWidth, roundedCornerPadding)
-            minRight = roundedCornerPadding
-        } else {
-            minLeft = roundedCornerPadding
-            minRight = max(minDotWidth, roundedCornerPadding)
-        }
-
         return calculateInsetsForRotationWithRotatedResources(
                 currentRotation,
                 targetRotation,
                 dc,
                 windowManager.maximumWindowMetrics,
                 rotatedResources.getDimensionPixelSize(R.dimen.status_bar_height),
-                minLeft,
-                minRight)
+                rotatedResources.getDimensionPixelSize(R.dimen.rounded_corner_content_padding))
     }
 
     override fun dump(fd: FileDescriptor, pw: PrintWriter, args: Array<out String>) {
@@ -230,12 +212,9 @@ fun getPrivacyChipBoundingRectForInsets(
  * Calculates the exact left and right positions for the status bar contents for the given
  * rotation
  *
- * @param currentRotation current device rotation
- * @param targetRotation rotation for which to calculate the status bar content rect
- * @param displayCutout [DisplayCutout] for the curren display. possibly null
- * @param windowMetrics [WindowMetrics] for the current window
- * @param statusBarHeight height of the status bar for the target rotation
- * @param roundedCornerPadding from rounded_corner_content_padding
+ * @param rot rotation for which to query the margins
+ * @param context systemui context
+ * @param rotatedResources resources constructed with the proper orientation set
  *
  * @see [RotationUtils#getResourcesForRotation]
  */
@@ -245,8 +224,7 @@ fun calculateInsetsForRotationWithRotatedResources(
     displayCutout: DisplayCutout?,
     windowMetrics: WindowMetrics,
     statusBarHeight: Int,
-    minLeft: Int,
-    minRight: Int
+    roundedCornerPadding: Int
 ): Rect {
     /*
     TODO: Check if this is ever used for devices with no rounded corners
@@ -264,8 +242,7 @@ fun calculateInsetsForRotationWithRotatedResources(
             rotZeroBounds.bottom,
             currentBounds.width(),
             currentBounds.height(),
-            minLeft,
-            minRight,
+            roundedCornerPadding,
             targetRotation,
             currentRotation)
 
@@ -279,10 +256,7 @@ fun calculateInsetsForRotationWithRotatedResources(
  * @param sbHeight appropriate status bar height for this rotation
  * @param width display width calculated for ROTATION_NONE
  * @param height display height calculated for ROTATION_NONE
- * @param cWidth display width in our current rotation
- * @param cHeight display height in our current rotation
- * @param minLeft the minimum padding to enforce on the left
- * @param minRight the minimum padding to enforce on the right
+ * @param roundedCornerPadding rounded_corner_content_padding dimension
  * @param targetRotation the rotation for which to calculate margins
  * @param currentRotation the rotation from which the display cutout was generated
  *
@@ -296,8 +270,7 @@ private fun getStatusBarLeftRight(
     height: Int,
     cWidth: Int,
     cHeight: Int,
-    minLeft: Int,
-    minRight: Int,
+    roundedCornerPadding: Int,
     @Rotation targetRotation: Int,
     @Rotation currentRotation: Int
 ): Rect {
@@ -306,9 +279,9 @@ private fun getStatusBarLeftRight(
 
     val cutoutRects = dc?.boundingRects
     if (cutoutRects == null || cutoutRects.isEmpty()) {
-        return Rect(minLeft,
+        return Rect(roundedCornerPadding,
                 0,
-                logicalDisplayWidth - minRight,
+                logicalDisplayWidth - roundedCornerPadding,
                 sbHeight)
     }
 
@@ -321,8 +294,8 @@ private fun getStatusBarLeftRight(
     // Size of the status bar window for the given rotation relative to our exact rotation
     val sbRect = sbRect(relativeRotation, sbHeight, Pair(cWidth, cHeight))
 
-    var leftMargin = minLeft
-    var rightMargin = minRight
+    var leftMargin = roundedCornerPadding
+    var rightMargin = roundedCornerPadding
     for (cutoutRect in cutoutRects) {
         // There is at most one non-functional area per short edge of the device. So if the status
         // bar doesn't share a short edge with the cutout, we can ignore its insets because there
@@ -333,11 +306,11 @@ private fun getStatusBarLeftRight(
 
         if (cutoutRect.touchesLeftEdge(relativeRotation, cWidth, cHeight)) {
 
-            val l = max(minLeft, cutoutRect.logicalWidth(relativeRotation))
+            val l = max(roundedCornerPadding, cutoutRect.logicalWidth(relativeRotation))
             leftMargin = max(l, leftMargin)
         } else if (cutoutRect.touchesRightEdge(relativeRotation, cWidth, cHeight)) {
             val logicalWidth = cutoutRect.logicalWidth(relativeRotation)
-            rightMargin = max(minRight, logicalWidth)
+            rightMargin = max(roundedCornerPadding, logicalWidth)
         }
     }
 
